@@ -1,6 +1,12 @@
+"use client";
+
 import Image from "next/image";
+import { useState } from "react";
 
 export default function Home() {
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+
+
   return (
     <div className="w-screen h-screen pt-10 bg-[#f5f5f5] flex justify-center">
 
