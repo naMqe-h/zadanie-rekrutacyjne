@@ -1,5 +1,5 @@
 interface MenuItem {
-    id: number;
+    id: string;
     name: string;
     url: string;
     depth: number;
