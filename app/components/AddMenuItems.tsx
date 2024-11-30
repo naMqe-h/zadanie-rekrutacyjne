@@ -17,8 +17,8 @@ export default function AddMenuItems({ setIsAdding, getMenuItems, setMenuItems, 
     return (
         <Formik
             initialValues={{
-                name: '',
-                url: ''
+                name: 'Promocje',
+                url: 'https://example.com'
             }}
             validate={
                 (values) => {
