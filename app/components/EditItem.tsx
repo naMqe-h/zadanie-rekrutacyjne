@@ -2,23 +2,21 @@
 
 import { Formik, Form, Field } from 'formik';
 import Image from 'next/image';
-import { v4 as uuidv4 } from 'uuid';
 
-interface AddMenuItemsProps {
-    setIsAdding: (isAdding: boolean) => void;
+interface EditItemProps {
+    setIsEditing: (isEditing: boolean) => void;
     setMenuItems: (menuItems: MenuItem[]) => void;
     getMenuItems: () => MenuItem[];
-    depth?: number;
-    parentId?: string | null;
-    isAddingNext?: boolean;
+    item: MenuItem;
+    isEditing: boolean;
 }
 
-export default function AddMenuItems({ setIsAdding, getMenuItems, setMenuItems, depth = 0, parentId = null, isAddingNext = false }: AddMenuItemsProps) {
+export default function EditItem({ setIsEditing, getMenuItems, setMenuItems, item, isEditing }: EditItemProps) {
     return (
         <Formik
             initialValues={{
-                name: 'Promocje',
-                url: 'https://example.com'
+                name: item.name,
+                url: item.url
             }}
             validate={
                 (values) => {
@@ -36,41 +34,30 @@ export default function AddMenuItems({ setIsAdding, getMenuItems, setMenuItems, 
                 }
             }
             onSubmit={(values) => {
-                const newItem: MenuItem = {
-                    id: uuidv4(),
-                    name: values.name,
-                    url: values.url,
-                    depth: depth,
-                    children: []
-                }
                 const menuItems = getMenuItems();
 
-                if (parentId) {
-                    const addToChildren = (items: MenuItem[]): MenuItem[] => {
-                        return items.map((item) => {
-                            if (item.id === parentId) {
-                                return {
-                                    ...item,
-                                    children: [...item.children, newItem]
-                                };
-                            }
-                            if (item.children.length > 0) {
-                                return {
-                                    ...item,
-                                    children: addToChildren(item.children)
-                                };
-                            }
-                            return item;
-                        });
-                    };
+                const updateItem = (items: MenuItem[]): MenuItem[] => {
+                    return items.map((menuItem) => {
+                        if (menuItem.id === item.id) {
+                            return {
+                                ...menuItem,
+                                name: values.name,
+                                url: values.url
+                            };
+                        }
+                        if (menuItem.children.length > 0) {
+                            return {
+                                ...menuItem,
+                                children: updateItem(menuItem.children)
+                            };
+                        }
+                        return menuItem;
+                    });
+                };
 
-                    const updatedItems = addToChildren(menuItems);
-                    setMenuItems(updatedItems);
-                } else {
-                    setMenuItems([...menuItems, newItem]);
-                }
-
-                setIsAdding(false);
+                const updatedItems = updateItem(menuItems);
+                setMenuItems(updatedItems);
+                setIsEditing(false);
             }}
         >
             {({
@@ -82,9 +69,9 @@ export default function AddMenuItems({ setIsAdding, getMenuItems, setMenuItems, 
                 handleSubmit,
                 isSubmitting,
             }) => (
-                <Form onSubmit={handleSubmit} className={`w-[1168px] h-[240px] bg-white border border-[#D0D5DD] rounded-lg flex flex-col gap-5 pb-5 ${isAddingNext ? `my-4 w-auto mx-6` : ""}`}>
+                <Form onSubmit={handleSubmit} className={`w-[1168px] h-[240px] bg-white border border-[#D0D5DD] rounded-lg flex flex-col gap-5 pb-5 ${isEditing ? `my-4 w-auto mx-6` : ""}`}>
                     <div className="w-full h-[160px] pt-5 px-6 flex gap-4">
-                        <div className={`w-[1064px] h-[140px] flex flex-col gap-2`}>
+                        <div className="w-[1064px] h-[140px] flex flex-col gap-2">
                             <div className="w-full h-[66px] flex flex-col gap-[6px]">
                                 <div className="flex justify-between">
                                     <label htmlFor="name" className="text-[#344054] text-sm font-medium">Nazwa</label>
@@ -122,14 +109,14 @@ export default function AddMenuItems({ setIsAdding, getMenuItems, setMenuItems, 
                             </div>
                         </div>
                         <div className='w-[40px] h-[40px]'>
-                            <button onClick={() => setIsAdding(false)} className='w-[40px] h-[40px] flex items-center justify-center rounded-lg p-[10px]'>
+                            <button className='w-[40px] h-[40px] flex items-center justify-center rounded-lg p-[10px]'>
                                 <Image src="/trash.svg" alt="trash" width={20} height={20} />
                             </button>
                         </div>
                     </div>
                     <div className='w-full h-[40px] px-6 flex justify-start gap-2'>
                         <button 
-                            onClick={() => setIsAdding(false)}
+                            onClick={() => setIsEditing(false)}
                             className='w-[75px] h-[40px] border border-[#D0D5DD] rounded-lg py-[10px] px-[14px] shadow-[0px_1px_2px_0px_#1018280D] text-[#344054] flex items-center justify-center hover:bg-[#F9FAFB] hover:text-[#182230]'
                         >
                             <span className='font-semibold text-sm'>Anuluj</span>
@@ -139,7 +126,7 @@ export default function AddMenuItems({ setIsAdding, getMenuItems, setMenuItems, 
                             className='w-[72px] h-[40px] border border-[#D6BBFB] rounded-lg py-[10px] px-[14px] shadow-[0px_1px_2px_0px_#1018280D] text-[#6941C6] flex items-center justify-center hover:bg-[#F9F5FF] hover:border-[#D6BBFB] hover:text-[#53389E]'
                             disabled={isSubmitting}
                         >
-                            <span className='font-semibold text-sm'>Dodaj</span>
+                            <span className='font-semibold text-sm'>Zapisz</span>
                         </button>
                     </div>
                 </Form>
