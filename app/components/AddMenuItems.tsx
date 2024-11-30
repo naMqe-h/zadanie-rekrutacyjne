@@ -7,13 +7,13 @@ import { v4 as uuidv4 } from 'uuid';
 interface AddMenuItemsProps {
     setIsAdding: (isAdding: boolean) => void;
     setMenuItems: (menuItems: MenuItem[]) => void;
-    menuItems: MenuItem[];
+    getMenuItems: () => MenuItem[];
     depth?: number;
     parentId?: string | null;
     isAddingNext?: boolean;
 }
 
-export default function AddMenuItems({ setIsAdding, menuItems, setMenuItems, depth = 0, parentId = null, isAddingNext = false }: AddMenuItemsProps) {
+export default function AddMenuItems({ setIsAdding, getMenuItems, setMenuItems, depth = 0, parentId = null, isAddingNext = false }: AddMenuItemsProps) {
     return (
         <Formik
             initialValues={{
@@ -43,6 +43,7 @@ export default function AddMenuItems({ setIsAdding, menuItems, setMenuItems, dep
                     depth: depth,
                     children: []
                 }
+                const menuItems = getMenuItems();
 
                 if (parentId) {
                     const addToChildren = (items: MenuItem[]): MenuItem[] => {
@@ -62,10 +63,9 @@ export default function AddMenuItems({ setIsAdding, menuItems, setMenuItems, dep
                             return item;
                         });
                     };
-                    
+
                     const updatedItems = addToChildren(menuItems);
                     setMenuItems(updatedItems);
-                    return;
                 } else {
                     setMenuItems([...menuItems, newItem]);
                 }
@@ -82,9 +82,9 @@ export default function AddMenuItems({ setIsAdding, menuItems, setMenuItems, dep
                 handleSubmit,
                 isSubmitting,
             }) => (
-                <Form onSubmit={handleSubmit} className={`w-[1168px] h-[240px] bg-white border border-[#D0D5DD] rounded-lg flex flex-col gap-5 pb-5 ${isAddingNext ? "mx-6 my-4 w-[1120px]" : ""}`}>
+                <Form onSubmit={handleSubmit} className={`w-[1168px] h-[240px] bg-white border border-[#D0D5DD] rounded-lg flex flex-col gap-5 pb-5 ${isAddingNext ? `my-4 w-auto mx-6` : ""}`}>
                     <div className="w-full h-[160px] pt-5 px-6 flex gap-4">
-                        <div className="w-[1064px] h-[140px] flex flex-col gap-2">
+                        <div className={`w-[1064px] h-[140px] flex flex-col gap-2`}>
                             <div className="w-full h-[66px] flex flex-col gap-[6px]">
                                 <div className="flex justify-between">
                                     <label htmlFor="name" className="text-[#344054] text-sm font-medium">Nazwa</label>

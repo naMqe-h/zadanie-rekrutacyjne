@@ -1,12 +1,20 @@
+"use client"
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import AddMenuItems from "./AddMenuItems";
 
 interface MenuItemProps {
     item: MenuItem;
     index: number;
+    setMenuItems: (menuItems: MenuItem[]) => void;
+    getMenuItems: () => MenuItem[];
 }
 
-export default function MenuItem({ item, index }: MenuItemProps) {
+export default function MenuItem({ item, index, setMenuItems, getMenuItems }: MenuItemProps) {
+    const [isAdding, setIsAdding] = useState(false);
+
     return (
         <div className={`w-[${1168 - (item.depth * 64)}px] h-auto ${index === 0 ? "rounded-t-lg" : ""} flex flex-col`} style={{marginLeft: `${item.depth * 64}px`}}>
             <div className={`w-[${1168 - (item.depth * 64)}px] h-[78px] bg-white rounded-lg border border-[#EAECF0] ${item.depth > 0 ? "rounded-t-none rounded-br-none" : "rounded-b-none rounded-tr-none"} px-6 py-4 flex items-center gap-1`}>
@@ -24,14 +32,16 @@ export default function MenuItem({ item, index }: MenuItemProps) {
                     <button className="w-[75px] h-[40px] border-r border-[#D0D5DD] px-4 py-2 flex items-center justify-center">
                         <span className="text-[#344054] text-sm font-semibold">Edytuj</span>
                     </button>
-                    <button className="w-[178px] h-[40px] px-4 py-2 flex items-center justify-center">
+                    <button onClick={() => setIsAdding(true)} className="w-[178px] h-[40px] px-4 py-2 flex items-center justify-center">
                         <span className="text-[#344054] text-sm font-semibold">Dodaj pozycję menu</span>
                     </button>
                 </div>
             </div>
-            {/* children */}
+            <div className={`${isAdding ? `mt-2 pl-8` : ""}`}>
+                {isAdding && <AddMenuItems setIsAdding={setIsAdding} getMenuItems={getMenuItems} setMenuItems={setMenuItems} depth={1} parentId={item.id} isAddingNext={true} />}
+            </div>
             {item.children.length > 0 && item.children.map((child) => (
-                <MenuItem key={child.id} item={child} index={index} />
+                <MenuItem key={child.id} item={child} index={index} setMenuItems={setMenuItems} getMenuItems={getMenuItems} />
             ))}
         </div>
     )
