@@ -28,8 +28,8 @@ export default function AddMenuItems({
     isAddingNext = false 
 }: AddMenuItemsProps) {
     const initialValues: FormValues = {
-        name: 'Promocje',
-        url: 'https://example.com'
+        name: '',
+        url: ''
     };
 
     const handleSubmit = (values: FormValues) => {
