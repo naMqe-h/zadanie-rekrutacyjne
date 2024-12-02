@@ -1,7 +1,9 @@
 "use client";
 
-import { Formik, Form, Field } from 'formik';
+import { Formik, Form, Field, FormikHelpers } from 'formik';
 import Image from 'next/image';
+import { useMemo } from 'react';
+import { validateMenuItemForm } from '../../lib/helpers';
 
 interface EditItemProps {
     setIsEditing: (isEditing: boolean) => void;
@@ -11,54 +13,50 @@ interface EditItemProps {
     isEditing: boolean;
 }
 
+interface FormValues {
+    name: string;
+    url: string;
+}
+
 export default function EditItem({ setIsEditing, getMenuItems, setMenuItems, item, isEditing }: EditItemProps) {
+    const initialValues = useMemo(() => ({
+        name: item.name,
+        url: item.url
+    }), [item]);
+
+    const handleSubmit = (values: FormValues, { setSubmitting }: FormikHelpers<FormValues>) => {
+        const menuItems = getMenuItems();
+
+        const updateItem = (items: MenuItem[]): MenuItem[] => {
+            return items.map((menuItem) => {
+                if (menuItem.id === item.id) {
+                    return {
+                        ...menuItem,
+                        name: values.name,
+                        url: values.url
+                    };
+                }
+                if (menuItem.children.length > 0) {
+                    return {
+                        ...menuItem,
+                        children: updateItem(menuItem.children)
+                    };
+                }
+                return menuItem;
+            });
+        };
+
+        const updatedItems = updateItem(menuItems);
+        setMenuItems(updatedItems);
+        setIsEditing(false);
+        setSubmitting(false);
+    };
+
     return (
         <Formik
-            initialValues={{
-                name: item.name,
-                url: item.url
-            }}
-            validate={
-                (values) => {
-                    const errors: any = {};
-                    if (!values.name) errors.name = 'Nazwa jest wymagana';
-                    if (!values.url) {
-                        errors.url = 'Link jest wymagany';
-                    } else {
-                        const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
-                        if (!urlRegex.test(values.url)) {
-                            errors.url = 'Nieprawidłowy format linku';
-                        }
-                    }
-                    return errors;
-                }
-            }
-            onSubmit={(values) => {
-                const menuItems = getMenuItems();
-
-                const updateItem = (items: MenuItem[]): MenuItem[] => {
-                    return items.map((menuItem) => {
-                        if (menuItem.id === item.id) {
-                            return {
-                                ...menuItem,
-                                name: values.name,
-                                url: values.url
-                            };
-                        }
-                        if (menuItem.children.length > 0) {
-                            return {
-                                ...menuItem,
-                                children: updateItem(menuItem.children)
-                            };
-                        }
-                        return menuItem;
-                    });
-                };
-
-                const updatedItems = updateItem(menuItems);
-                setMenuItems(updatedItems);
-                setIsEditing(false);
-            }}
+            initialValues={initialValues}
+            validate={validateMenuItemForm}
+            onSubmit={handleSubmit}
         >
             {({
                 values,
@@ -109,13 +107,14 @@ export default function EditItem({ setIsEditing, getMenuItems, setMenuItems, ite
                             </div>
                         </div>
                         <div className='w-[40px] h-[40px]'>
-                            <button className='w-[40px] h-[40px] flex items-center justify-center rounded-lg p-[10px]'>
+                            <button type="button" className='w-[40px] h-[40px] flex items-center justify-center rounded-lg p-[10px]'>
                                 <Image src="/trash.svg" alt="trash" width={20} height={20} />
                             </button>
                         </div>
                     </div>
                     <div className='w-full h-[40px] px-6 flex justify-start gap-2'>
                         <button 
+                            type="button"
                             onClick={() => setIsEditing(false)}
                             className='w-[75px] h-[40px] border border-[#D0D5DD] rounded-lg py-[10px] px-[14px] shadow-[0px_1px_2px_0px_#1018280D] text-[#344054] flex items-center justify-center hover:bg-[#F9FAFB] hover:text-[#182230]'
                         >

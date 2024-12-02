@@ -3,6 +3,12 @@
 import { Formik, Form, Field } from 'formik';
 import Image from 'next/image';
 import { v4 as uuidv4 } from 'uuid';
+import { validateMenuItemForm, addItemToChildren } from '@/lib/helpers';
+
+interface FormValues {
+    name: string;
+    url: string;
+}
 
 interface AddMenuItemsProps {
     setIsAdding: (isAdding: boolean) => void;
@@ -13,65 +19,46 @@ interface AddMenuItemsProps {
     isAddingNext?: boolean;
 }
 
-export default function AddMenuItems({ setIsAdding, getMenuItems, setMenuItems, depth = 0, parentId = null, isAddingNext = false }: AddMenuItemsProps) {
+export default function AddMenuItems({ 
+    setIsAdding, 
+    getMenuItems, 
+    setMenuItems, 
+    depth = 0, 
+    parentId = null, 
+    isAddingNext = false 
+}: AddMenuItemsProps) {
+    const initialValues: FormValues = {
+        name: 'Promocje',
+        url: 'https://example.com'
+    };
+
+    const handleSubmit = (values: FormValues) => {
+        const newItem: MenuItem = {
+            id: uuidv4(),
+            name: values.name,
+            url: values.url,
+            depth,
+            children: []
+        };
+
+        const menuItems = getMenuItems();
+
+        if (parentId) {
+            setMenuItems(addItemToChildren(menuItems, parentId, newItem));
+        } else {
+            setMenuItems([...menuItems, newItem]);
+        }
+
+        setIsAdding(false);
+    };
+
+    const handleCancel = () => setIsAdding(false);
+
     return (
         <Formik
-            initialValues={{
-                name: 'Promocje',
-                url: 'https://example.com'
-            }}
-            validate={
-                (values) => {
-                    const errors: any = {};
-                    if (!values.name) errors.name = 'Nazwa jest wymagana';
-                    if (!values.url) {
-                        errors.url = 'Link jest wymagany';
-                    } else {
-                        const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
-                        if (!urlRegex.test(values.url)) {
-                            errors.url = 'Nieprawidłowy format linku';
-                        }
-                    }
-                    return errors;
-                }
-            }
-            onSubmit={(values) => {
-                const newItem: MenuItem = {
-                    id: uuidv4(),
-                    name: values.name,
-                    url: values.url,
-                    depth: depth,
-                    children: []
-                }
-                const menuItems = getMenuItems();
-
-                if (parentId) {
-                    const addToChildren = (items: MenuItem[]): MenuItem[] => {
-                        return items.map((item) => {
-                            if (item.id === parentId) {
-                                return {
-                                    ...item,
-                                    children: [...item.children, newItem]
-                                };
-                            }
-                            if (item.children.length > 0) {
-                                return {
-                                    ...item,
-                                    children: addToChildren(item.children)
-                                };
-                            }
-                            return item;
-                        });
-                    };
-
-                    const updatedItems = addToChildren(menuItems);
-                    setMenuItems(updatedItems);
-                } else {
-                    setMenuItems([...menuItems, newItem]);
-                }
-
-                setIsAdding(false);
-            }}
+            initialValues={initialValues}
+            validate={validateMenuItemForm}
+            onSubmit={handleSubmit}
         >
             {({
                 values,
@@ -122,14 +109,19 @@ export default function AddMenuItems({ setIsAdding, getMenuItems, setMenuItems, 
                             </div>
                         </div>
                         <div className='w-[40px] h-[40px]'>
-                            <button onClick={() => setIsAdding(false)} className='w-[40px] h-[40px] flex items-center justify-center rounded-lg p-[10px]'>
+                            <button 
+                                type="button"
+                                onClick={handleCancel} 
+                                className='w-[40px] h-[40px] flex items-center justify-center rounded-lg p-[10px]'
+                            >
                                 <Image src="/trash.svg" alt="trash" width={20} height={20} />
                             </button>
                         </div>
                     </div>
                     <div className='w-full h-[40px] px-6 flex justify-start gap-2'>
                         <button 
-                            onClick={() => setIsAdding(false)}
+                            type="button"
+                            onClick={handleCancel}
                             className='w-[75px] h-[40px] border border-[#D0D5DD] rounded-lg py-[10px] px-[14px] shadow-[0px_1px_2px_0px_#1018280D] text-[#344054] flex items-center justify-center hover:bg-[#F9FAFB] hover:text-[#182230]'
                         >
                             <span className='font-semibold text-sm'>Anuluj</span>
@@ -145,5 +137,5 @@ export default function AddMenuItems({ setIsAdding, getMenuItems, setMenuItems, 
                 </Form>
             )}
         </Formik>
-    )
+    );
 }
