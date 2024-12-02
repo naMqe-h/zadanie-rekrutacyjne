@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useState } from "react";
 import AddMenuItems from "./AddMenuItems";
 import EditItem from "./EditItem";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface MenuItemProps {
     item: MenuItem;
@@ -16,6 +18,23 @@ interface MenuItemProps {
 export default function MenuItem({ item, index, setMenuItems, getMenuItems }: MenuItemProps) {
     const [isAdding, setIsAdding] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({
+        id: item.id
+    });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1
+    };
 
     const handleDelete = () => {
         const menuItems = getMenuItems();
@@ -33,9 +52,17 @@ export default function MenuItem({ item, index, setMenuItems, getMenuItems }: Me
     }
 
     return (
-        <div className={`w-[${1168 - (item.depth * 64)}px] h-auto ${index === 0 ? "rounded-t-lg" : ""} flex flex-col`} style={{marginLeft: `${item.depth * 64}px`}}>
-            <div className={`w-[${1168 - (item.depth * 64)}px] h-[78px] bg-white rounded-lg border border-[#EAECF0] ${item.depth > 0 ? "rounded-t-none rounded-br-none" : "rounded-b-none rounded-tr-none"} px-6 py-4 flex items-center gap-1`}>
-                <button className="w-[40px] h-[40px] flex items-center justify-center rounded-lg">
+        <div 
+            ref={setNodeRef}
+            className={`w-[${1168 - (item.depth * 64)}px] h-auto ${index === 0 ? "rounded-t-lg" : ""} flex flex-col`} 
+            style={{marginLeft: `${item.depth * 64}px`, ...style}}
+        >
+            <div className={`w-[${1168 - (item.depth * 64)}px] bg-white rounded-lg border border-[#EAECF0] ${item.depth > 0 ? "rounded-t-none rounded-br-none" : "rounded-b-none rounded-tr-none"} px-6 py-4 flex items-center gap-1`}>
+                <button 
+                    className="w-[40px] h-[40px] flex items-center justify-center rounded-lg cursor-grab"
+                    {...attributes}
+                    {...listeners}
+                >
                     <Image src="/move.svg" alt="move" width={20} height={20} />
                 </button>
                 <div className="w-full flex flex-col gap-[6px]">
